@@ -1,7 +1,9 @@
-from Simulation import Simulation
+from Simulation import Simulation, BoundaryFunction
 from Particle import Particle
 from Fluid import Fluid
 from Vec import Vec2
+from typing import List
+from math import pi, tan
 from time import time, sleep
 
 '''
@@ -21,8 +23,30 @@ class ParticleInFluidSimulation(Simulation):
     _elapsed_time  : float    = 0
     _sec_per_tick  : int      = None
 
+    def create_boundary_funcs() -> List[BoundaryFunction]:
+        cotan = lambda theta : 1.0/tan(theta)
+        pi_2  = 2*pi
+        input_range = (15.5568, 176.891)
+
+        a_x = lambda theta: (5*(3.7699111843077517 - theta) * cotan(theta))/pi_2
+        a_y = lambda theta: (5*(3.7699111843077517 - theta))/pi_2
+
+        b_x = lambda theta: (5*(4.39822971502571 - theta) * cotan(theta))/pi_2
+        b_y = lambda theta: -(5*(4.39822971502571 - theta))/pi_2
+
+        c_x = lambda theta: (5*(pi - theta) * cotan(theta))/pi_2
+        c_y = lambda theta: -(5*(pi - theta))/pi_2
+
+        d_x = lambda theta: (5*(pi - theta) * cotan(theta))/pi_2
+        d_y = lambda theta: (5*(pi - theta))/pi_2
+
+        return [BoundaryFunction(a_x, a_y, input_range),
+                BoundaryFunction(b_x, b_y, input_range),
+                BoundaryFunction(c_x, c_y, input_range),
+                BoundaryFunction(d_x, d_y, input_range)]
+
     def __init__(self, fluid_v: Vec2, fluid_d: float):
-        self._fluid = Fluid(fluid_v, fluid_d)
+        self._fluid = Fluid(fluid_v, fluid_d, ParticleInFluidSimulation.create_boundary_funcs())
         self._elapsed_time = time()
 
     '''
