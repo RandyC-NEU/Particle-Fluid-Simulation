@@ -34,3 +34,16 @@ class BoundaryFunction:
             points_y.append(self._y_func(deg2rad(start)))
             start += granularity
         return (points_x, points_y)
+
+class Boundary:
+    _funcs : List[BoundaryFunction]
+
+    def __init__(self, funcs: List[BoundaryFunction]):
+        self._funcs = funcs
+
+    def plot(self, i: int, granularity: float = 0.01) -> Tuple[List[float]]:
+        assert i < len(self._funcs)
+        return self._funcs[i].plot(granularity)
+
+    def calc_wall_distance(x: float) -> float:
+        return 0.0
