@@ -5,7 +5,7 @@ from typing import List
 class Fluid(Simulation):
     _velocity : Vec2
     _density  : float
-    _boundary : Boundary #List[BoundaryFunction]
+    _boundary : Boundary
 
     def __init__(self, v: Vec2, d: float, boundary: Boundary = None):
         self._velocity = v
