@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 '''
-    Interface for any object that needs its paramteres updated oat every time step
+    Interface for any object that needs its parameters updated at every time step
 '''
 class Simulation(ABC):
     @abstractmethod
