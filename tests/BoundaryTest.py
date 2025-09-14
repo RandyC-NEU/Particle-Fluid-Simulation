@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from math import pi, tan
 from FluidSimulation import ParticleInFluidSimulation
 
 def plot_boundary_funcs():

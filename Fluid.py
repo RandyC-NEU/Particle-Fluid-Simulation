@@ -1,6 +1,5 @@
 from Vec import Vec2
 from Simulation import Simulation, Boundary
-from typing import List
 
 class Fluid(Simulation):
     _velocity : Vec2
