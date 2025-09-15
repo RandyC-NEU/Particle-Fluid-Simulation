@@ -25,7 +25,7 @@ class ParticleInFluidSimulation(Simulation):
     _elapsed_time       : float             = 0
     _sec_per_tick       : int               = None
     _particle_positions : List[List[float]] = None
-    _num_iterations     : int               = None
+    _num_iterations     : float               = None
 
     def create_boundary() -> Boundary:
         cotan = lambda theta : 1.0/tan(theta)
