@@ -45,5 +45,8 @@ class Boundary:
         assert i < len(self._funcs)
         return self._funcs[i].plot(granularity)
 
+    def __len__(self):
+        return len(self._funcs)
+
     def calc_wall_distance(x: float) -> float:
         return 0.0

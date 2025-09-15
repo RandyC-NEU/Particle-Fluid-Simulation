@@ -23,7 +23,16 @@ class Particle(Simulation):
     def add_to_fluid(self, f: Fluid):
         self._fluid = f
 
-    def update(self, dt):
-        print("[PARTICLE] Current time step: ", dt)
-        print("[PARTICLE] Current frame rate: ", 1.0/dt)
+    def position(self) -> Vec2:
+        return self._position
+
+    def update(self, dt: float):
+        displacement : Vec2 = Vec2.zeros()
+        resultant_accel : Vec2 = Vec2.zeros()
+
+        displacement += (self._velocity*dt)
+        displacement += (self._fluid.velocity()*dt)
+        displacement += (self._mass*resultant_accel)
+
+        self._position += displacement
         pass

@@ -2,6 +2,8 @@ from Simulation import Simulation, Boundary, BoundaryFunction
 from Fluid import Fluid
 from Particle import Particle
 from Vec import Vec2
+
+import matplotlib.pyplot as plt
 from typing import List
 from math import pi, tan
 from time import time, sleep
@@ -17,11 +19,13 @@ from time import time, sleep
         - Fluid has a constant temparature
 '''
 class ParticleInFluidSimulation(Simulation):
-    _particle      : Particle = None
-    _fluid         : Fluid    = None
-    _quit          : bool     = False
-    _elapsed_time  : float    = 0
-    _sec_per_tick  : int      = None
+    _particle           : Particle          = None
+    _fluid              : Fluid             = None
+    _quit               : bool              = False
+    _elapsed_time       : float             = 0
+    _sec_per_tick       : int               = None
+    _particle_positions : List[List[float]] = None
+    _num_iterations     : int               = None
 
     def create_boundary() -> Boundary:
         cotan = lambda theta : 1.0/tan(theta)
@@ -45,16 +49,17 @@ class ParticleInFluidSimulation(Simulation):
                          BoundaryFunction(c_x, c_y, input_range),
                          BoundaryFunction(d_x, d_y, input_range)])
 
-    def __init__(self, fluid_v: Vec2, fluid_d: float):
-        self._fluid = Fluid(fluid_v, fluid_d, ParticleInFluidSimulation.create_boundary())
+    def __init__(self, fluid_velocity: Vec2, fluid_density: float):
+        self._fluid = Fluid(fluid_velocity, fluid_density, ParticleInFluidSimulation.create_boundary())
         self._elapsed_time = time()
+        self._particle_positions = [[], []]
 
     '''
         Add a particle to the simulation
     '''
-    def add_particle(self, particle_p: Vec2, particle_v: Vec2, particle_m: float):
+    def add_particle(self, position: Vec2, velocity: Vec2, mass: float):
         if self._particle is None:
-            self._particle = Particle(particle_p, particle_v, particle_m)
+            self._particle = Particle(position, velocity, mass)
             self._particle.add_to_fluid(self._fluid)
         else:
             assert "A particle has already been added to this simulation, this is not a multi-particle simuation (yet :))"
@@ -66,9 +71,19 @@ class ParticleInFluidSimulation(Simulation):
     def throttle_simulation(self, ticks_per_sec):
         self._sec_per_tick = 1.0/ticks_per_sec
 
+    def limit_iterations(self, iters: int):
+        self._num_iterations = iters
+
+    def update_particle_trajectory(self):
+        pos = self._particle.position()
+        self._particle_positions[0].append(pos[0])
+        self._particle_positions[1].append(pos[1])
+
     def update(self, dt):
         self._particle.update(dt)
         self._fluid.update(dt)
+
+        self.update_particle_trajectory()
         self._elapsed_time += dt
 
     '''
@@ -93,6 +108,23 @@ class ParticleInFluidSimulation(Simulation):
         assert all((x is not None) for x in [self._particle, self._fluid])
 
         dt = self.get_time() - self._elapsed_time
-        while (not self._quit):
+        while (not self._quit) and (self._num_iterations > 0 if (self._num_iterations is not None) else True):
             self.update(dt)
             dt = self.get_time() - self._elapsed_time
+            if self._num_iterations is not None:
+                self._num_iterations-=1
+
+    def plot_boundary(self):
+        markers = ['r+', 'b+', 'y+', 'y+']
+        for i in range(len(self._fluid.boundary_functions())):
+            points_x, points_y = self._fluid.boundary_functions().plot(i, granularity=0.01)
+            plt.plot(points_x, points_y, markers[i], markersize=3)
+
+    def plot_particle_trajectory(self):
+        plt.plot(self._particle_positions[0], self._particle_positions[1], 'go', markersize=1)
+
+    def plot(self):
+        self.plot_boundary()
+        self.plot_particle_trajectory()
+
+        plt.show()
