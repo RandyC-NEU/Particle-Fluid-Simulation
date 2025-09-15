@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from FluidSimulation import ParticleInFluidSimulation
+from Simulation import Boundary
 
 def plot_boundary_funcs():
     boundary = ParticleInFluidSimulation.create_boundary()

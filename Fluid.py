@@ -11,5 +11,11 @@ class Fluid(Simulation):
         self._density  = d
         self._boundary = boundary
 
+    def velocity(self) -> Vec2:
+        return self._velocity
+
+    def boundary_functions(self) -> Boundary:
+        return self._boundary
+
     def update(self, dt):
         pass
