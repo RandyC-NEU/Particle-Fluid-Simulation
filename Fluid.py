@@ -1,6 +1,12 @@
 from Vec import Vec2
 from Simulation import Simulation, Boundary
+'''
+    Assumptions:
+    Constant velocity throughout pipe
+    Constant density  throughout pipe
+    Constant temperature throughout pipe
 
+'''
 class Fluid(Simulation):
     _velocity : Vec2
     _density  : float
