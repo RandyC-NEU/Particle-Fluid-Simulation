@@ -3,6 +3,7 @@ from typing import Callable, Tuple, List, Dict
 from math import pi, tan
 from scipy.optimize import root_scalar
 import numpy as np
+from Vec import Vec2
 
 '''
     Interface for any object that needs its parameters updated at every time step
@@ -12,7 +13,17 @@ class Simulation(ABC):
     def update(self, dt):
         pass
 
+SimulationParameterFunc = Callable[[Simulation, Simulation], float]
 deg2rad = lambda theta: theta * (pi/180)
+
+class PhysicsConstants:
+    GRAVITY_M_S__2:                   Vec2 = Vec2(0, -9.81)
+    DENSITY_AIR_25C__1_ATM:           float = 1.184
+    DYNAMIC_VISCOSITY_AIR_25C__1_ATM: float = 1.849*1e-5
+    DENSITY_SAND__KG_M__3:            float = 1600
+
+class MathConstants:
+    find_sphere_volume: Callable[[float], float] = lambda radius: (4/3)*np.pi*(radius**3)
 
 class BoundaryFunction:
     BoundaryLutEntry = List[Tuple[float, float, float]]

@@ -32,10 +32,10 @@ class ParticleInFluidSimulation(Simulation):
     _particle_positions : List[List[List[float]]] = None
     _num_iterations     : float                   = None
     _granularity        : float                   = 0.01
+    num_updates = 0
 
     def create_boundary() -> Boundary:
         cotan = lambda theta : 1.0/np.tan(theta)
-        arc_cotan = lambda y : np.atan(1/y)
 
         pi_2  = 2*pi
         input_range = (15.5568, 176.891)
@@ -57,6 +57,15 @@ class ParticleInFluidSimulation(Simulation):
                          BoundaryFunction(c_x, c_y, input_range),
                          BoundaryFunction(d_x, d_y, input_range)])
 
+    def calc_reynolds_number(p: Particle, f: Fluid) -> float:
+        vel_delta : Vec2 = (p.velocity() - f.velocity())
+        reynolds = (f.density()*p.diameter_in_m()*vel_delta.magnitude()) / f.dynamic_viscosity()
+        return reynolds
+
+    def calc_drag_coeff(p: Particle, f: Fluid) -> float:
+        reynolds = ParticleInFluidSimulation.calc_reynolds_number(p, f)
+        return (24/reynolds)*(1 + 0.15*(np.power(reynolds, 0.687)))
+
     def __init__(self, fluid_velocity: Vec2, fluid_density: float):
         self._boundary = ParticleInFluidSimulation.create_boundary()
         self._fluid = Fluid(fluid_velocity, fluid_density, self._boundary)
@@ -66,12 +75,17 @@ class ParticleInFluidSimulation(Simulation):
     '''
         Add a particle to the simulation
     '''
-    def add_particle(self, position: Vec2, mass: float):
+    def add_particle(self, position: Vec2, diameter_nm: float, density: float, relaxation_time: float):
         if len(self._particles) < self._particle_count:
-            self._particles.append(Particle(position, mass, d=1))
+            self._particles.append(Particle(p=position,
+                                            d_nm=diameter_nm,
+                                            density=density,
+                                            relaxation_time=relaxation_time,
+                                            get_reynolds=ParticleInFluidSimulation.calc_reynolds_number,
+                                            get_drag_coeff=ParticleInFluidSimulation.calc_drag_coeff))
             self._particles[-1].add_to_fluid(self._fluid)
         else:
-            assert "Too many particles has already been added to this simulation"
+            assert False and "Too many particles has already been added to this simulation"
 
     '''
         Set a "tick rate" for the simulation. This is analogous to a frame rate for a graphics render where an update to the
@@ -84,8 +98,8 @@ class ParticleInFluidSimulation(Simulation):
         self._num_iterations = iters
 
     def set_particle_count(self, count: float):
-        if count > self._particle_count:
             self._particle_count = count
+            self._particle_positions.clear()
             for i in range(self._particle_count):
                 self._particle_positions.append([[], []])
 
@@ -100,7 +114,11 @@ class ParticleInFluidSimulation(Simulation):
             p.update(dt)
         self._fluid.update(dt)
 
+        for p in self._particles:
+            print(f'Position at time_step {self.num_updates}: {p.position()}')
+
         self.update_particle_trajectory()
+        self.num_updates +=1
         self._elapsed_time += dt
 
     '''
@@ -111,10 +129,6 @@ class ParticleInFluidSimulation(Simulation):
         if self._sec_per_tick is None:
             return time()
         else:
-            elapsed = time() - self._elapsed_time
-            sleep_time = elapsed - self._sec_per_tick
-            if sleep_time > 0.0:
-                sleep(sleep_time)
             return self._sec_per_tick + self._elapsed_time
 
     '''
@@ -122,8 +136,6 @@ class ParticleInFluidSimulation(Simulation):
     '''
     def start(self):
         print("Sim start")
-        #assert all((x is not None) for x in [self._particle, self._fluid])
-
         dt = self.get_time() - self._elapsed_time
         while (not self._quit) and (self._num_iterations > 0 if (self._num_iterations is not None) else True):
             self.update(dt)

@@ -7,10 +7,12 @@ from Simulation import Simulation, Boundary
     Constant temperature throughout pipe
 
 '''
+#Air @25C and 1 atm
 class Fluid(Simulation):
     _velocity : Vec2
     _density  : float
     _boundary : Boundary
+    _dynamic_viscosity : float = 1.849*1e-5
 
     def __init__(self, v: Vec2, d: float, boundary: Boundary = None):
         self._velocity = v
@@ -19,6 +21,12 @@ class Fluid(Simulation):
 
     def velocity(self) -> Vec2:
         return self._velocity
+
+    def density(self) -> float:
+        return self._density
+
+    def dynamic_viscosity(self) -> float:
+        return self._dynamic_viscosity
 
     def boundary_functions(self) -> Boundary:
         return self._boundary
