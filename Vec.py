@@ -9,7 +9,7 @@ from math import sqrt
 class Vec2:
     _x : float
     _y : float
-    def __init__(self, x, y):
+    def __init__(self, x: float, y: float):
         self._x = x
         self._y = y
 
@@ -19,6 +19,9 @@ class Vec2:
     def ones():
         return Vec2(1.0, 1.0)
 
+    def __eq__(self, other):
+        return (self._x == other._x) and (self._y == other._y)
+
     def __add__(self, other):
         return Vec2(self._x + other._x, self._y + other._y)
 
@@ -27,6 +30,9 @@ class Vec2:
 
     def __rmul__(self, multiple):
         return self * multiple
+
+    def __truediv__(self, multiple):
+        return Vec2(self._x / multiple, self._y / multiple)
 
     def __sub__(self, other):
         return Vec2(self._x - other._x, self._y - other._y)
@@ -40,3 +46,6 @@ class Vec2:
 
     def magnitude(self):
         return sqrt(self._x**2 + self._y**2)
+
+    def normalize(self):
+        return self / self.magnitude()

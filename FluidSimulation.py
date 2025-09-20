@@ -32,30 +32,39 @@ class ParticleInFluidSimulation(Simulation):
     _particle_positions : List[List[List[float]]] = None
     _num_iterations     : float                   = None
     _granularity        : float                   = 0.01
-    num_updates = 0
+    _num_updates        : float                   = 0
 
     def create_boundary() -> Boundary:
         cotan = lambda theta : 1.0/np.tan(theta)
+        csc   = lambda theta : 1.0/np.sin(theta)
 
         pi_2  = 2*pi
         input_range = (15.5568, 176.891)
 
         a_x = lambda theta: (5*(3.7699111843077517 - theta) * cotan(theta))/pi_2
         a_y = lambda theta: (5*(3.7699111843077517 - theta))/pi_2
+        da_x = lambda theta: (5/(2*np.pi))*(-cotan(theta)-(3.7699111843077517-theta)*(csc(theta)**2))
+        da_y = lambda _: -(5/(2*np.pi))
 
         b_x = lambda theta:  (5*(4.39822971502571 - theta) * cotan(theta))/pi_2
         b_y = lambda theta: -(5*(4.39822971502571 - theta))/pi_2
+        db_x = lambda theta: (5/(2*np.pi))*(-cotan(theta)-(4.39822971502571-theta)*(csc(theta)**2))
+        db_y = lambda _: (5/(2*np.pi))
 
         c_x = lambda theta: (5*(pi - theta) * cotan(theta))/pi_2
         c_y = lambda theta: -(5*(pi - theta))/pi_2
+        dc_x = lambda theta: (5/(2*np.pi))*(-cotan(theta)-(np.pi-theta)*(csc(theta)**2))
+        dc_y = lambda _: (5/(2*np.pi))
 
         d_x = lambda theta: (5*(pi - theta) * cotan(theta))/pi_2
         d_y = lambda theta: (5*(pi - theta))/pi_2
+        dd_x = lambda theta: (5/(2*np.pi))*(-cotan(theta)-(np.pi-theta)*(csc(theta)**2))
+        dd_y = lambda _: -(5/(2*np.pi))
 
-        return Boundary([BoundaryFunction(a_x, a_y, input_range),
-                         BoundaryFunction(b_x, b_y, input_range),
-                         BoundaryFunction(c_x, c_y, input_range),
-                         BoundaryFunction(d_x, d_y, input_range)])
+        return Boundary([BoundaryFunction(a_x, a_y, da_x, da_y, input_range),
+                         BoundaryFunction(b_x, b_y, db_x, db_y, input_range),
+                         BoundaryFunction(c_x, c_y, dc_x, dc_y, input_range),
+                         BoundaryFunction(d_x, d_y, dd_x, dd_y, input_range)])
 
     def calc_reynolds_number(p: Particle, f: Fluid) -> float:
         vel_delta : Vec2 = (p.velocity() - f.velocity())
@@ -112,14 +121,21 @@ class ParticleInFluidSimulation(Simulation):
     def update(self, dt):
         for p in self._particles:
             p.update(dt)
+            if p.collided():
+                # self.plot()
+                # exit()
+                self._quit = True
         self._fluid.update(dt)
 
-        for p in self._particles:
-            print(f'Position at time_step {self.num_updates}: {p.position()}')
+        # for p in self._particles:
+        #     print(f'Position at time_step {self.num_updates}: {p.position()}')
 
         self.update_particle_trajectory()
-        self.num_updates +=1
+        self._num_updates +=1
         self._elapsed_time += dt
+
+        if self._num_updates % 1000 == 0:
+            print(f'{(self._num_updates//1000)*1000} time steps complete')
 
     '''
         Get next time step; Note this is a raw time step.

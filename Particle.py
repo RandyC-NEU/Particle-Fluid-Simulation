@@ -12,7 +12,7 @@ from random import random
     Is a sphere of constant diameter
     Not rotating
     Interactions between particles can be ignored
-    Initial velocity of particle
+    Initial velocity of particle is about a 5% difference to the fluid
 '''
 class Particle(Simulation):
     _position : Vec2
@@ -57,7 +57,18 @@ class Particle(Simulation):
     def diameter_in_m(self) -> float:
         return self._diameter_nm / 1e6
 
+    def collided(self) -> bool:
+        return self._collided
+
+    def detect_collision(self):
+        for f in self._fluid.boundary_functions():
+            collision_test = f.call_inv(self._position[0], self._position[1])
+            if collision_test is not None:
+                print(collision_test)
+                self._collided = True
+
     def update(self, dt: float):
+        self._collided         = False
         drag_force      : Vec2 = Vec2.zeros()
         delta_velocity  : Vec2 = Vec2.zeros()
 
@@ -68,10 +79,11 @@ class Particle(Simulation):
         drag_dependent_force : Vec2 = drag_force*(self._fluid.velocity() - self._velocity)
         grav_dependent_force : Vec2 = ((self._density - self._fluid.density())/self._density)*PhysicsConstants.GRAVITY_M_S__2
 
-        dv_dt : Vec2 = drag_dependent_force + (grav_dependent_force if self._relaxation_time > 0.1 else Vec2(0, 0))
+        dv_dt : Vec2 = drag_dependent_force #+ (grav_dependent_force if self._relaxation_time > 0.8 else Vec2(0, 0))
 
         delta_velocity += dv_dt*dt
 
         self._velocity += delta_velocity
         self._position += self._velocity*dt
-        pass
+
+        self.detect_collision()
