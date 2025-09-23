@@ -1,7 +1,7 @@
 from Simulation import Simulation, SimulationParameterFunc, PhysicsConstants, MathConstants
 from Vec import Vec2
 from Fluid import Fluid
-from typing import Callable
+from typing import Callable, Tuple
 from random import random
 
 '''
@@ -60,17 +60,36 @@ class Particle(Simulation):
     def collided(self) -> bool:
         return self._collided
 
-    def detect_collision(self):
-        for f in self._fluid.boundary_functions():
-            collision_test = f.call_inv(self._position[0], self._position[1])
-            if collision_test is not None:
-                print(collision_test)
-                self._collided = True
+    def reflect_off_boundary(self, boundary_idx: int, collision_theta: Tuple, dt: float):
+        normal: Vec2 = self._fluid.boundary_functions()[boundary_idx].get_normal_at_point(collision_theta)
+
+        velocity_normal = normal * Vec2.dot(self._velocity, normal)
+        velocity_tan = self._velocity - velocity_normal
+
+        coeff_restution_norm, coeff_resitution_tan = self._fluid.boundary_functions().get_coeffs_of_restitution()
+
+        velocity_normal *= -1*coeff_restution_norm
+        velocity_tan *= coeff_resitution_tan
+        self._velocity = (velocity_normal + velocity_tan)
+        self._position += self._velocity*dt
+
+        self._collided = True
+        pass
+
+    def detect_collision(self, dt: float):
+        for i, f in enumerate(self._fluid.boundary_functions()):
+            collision = f.call_inv(self._position[0], self._position[1])
+            if collision is not None:
+                print("Boundary", i, ":: ")
+                print(collision)
+                self.reflect_off_boundary(i, collision[2], dt)
 
     def update(self, dt: float):
         self._collided         = False
         drag_force      : Vec2 = Vec2.zeros()
         delta_velocity  : Vec2 = Vec2.zeros()
+
+        self.detect_collision(dt)
 
         a = (18*self._fluid.dynamic_viscosity())/(self._density*(self.diameter_in_m()**2))
         b = (self._get_drag_coeff(self, self._fluid)*self._get_reynolds(self, self._fluid))/24
@@ -85,5 +104,3 @@ class Particle(Simulation):
 
         self._velocity += delta_velocity
         self._position += self._velocity*dt
-
-        self.detect_collision()

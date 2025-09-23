@@ -100,7 +100,7 @@ class BoundaryFunction:
         Do a linear search on the lookup table for the boundary function to
         find the closest entry to a given x and y in the LUT
     '''
-    def call_inv(self, x: float, y: float) -> float:
+    def call_inv(self, x: float, y: float) -> Tuple[float, float, float]:
         for (x_lut, y_lut, rad_lut) in self._boundary_lut:
             if (np.abs(y_lut - y) < 0.01) and (np.abs(x_lut - x) < 0.01):
                 return (x_lut, y_lut, rad_lut)
@@ -150,6 +150,13 @@ class Boundary:
 
     def __next__(self):
         return self._funcs.__next__()
+
+    def __getitem__(self, key: int) -> BoundaryFunction:
+        assert (key >= 0) and (key < len(self))
+        return self._funcs[key]
+
+    def get_coeffs_of_restitution(self) -> Tuple[float, float]:
+        return (0.95, 0.78)
 
     def calc_wall_distance(self, boundary_idx_upper: int, boundary_idx_lower: int, x_val: float) -> float:
         assert (boundary_idx_upper != boundary_idx_lower) and (boundary_idx_upper in range(len(self))) and (boundary_idx_upper in range(len((self))))

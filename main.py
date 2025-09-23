@@ -3,21 +3,24 @@ from Simulation import PhysicsConstants
 from tests.BoundaryTest import plot_boundary_funcs, get_inlet_outlet_areas
 from tests.TestReynoldsNumber import run_reynolds_test, run_drag_coeff_test
 from Vec import Vec2
-from sys import argv
+import sys
 import numpy as np
+import signal
 
 def main():
-    if ((len(argv) > 1)):
-        if argv[1] == 'test_boundary':
+    if ((len(sys.argv) > 1)):
+        if sys.argv[1] == 'test_boundary':
             plot_boundary_funcs()
-        if argv[1] == 'get_wall_areas':
+        if sys.argv[1] == 'get_wall_areas':
             get_inlet_outlet_areas()
-        if argv[1] == 'test_reynolds_number':
+        if sys.argv[1] == 'test_reynolds_number':
             run_reynolds_test()
-        if argv[1] == 'test_drag_coeff':
+        if sys.argv[1] == 'test_drag_coeff':
             run_drag_coeff_test()
     else:
+
         sim = ParticleInFluidSimulation(fluid_velocity=Vec2(1.0, 0.0), fluid_density=PhysicsConstants.DENSITY_AIR_25C__1_ATM)
+        signal.signal(signal.SIGINT, sim.get_sig_handler())
 
         particle_sizes_nm = [1, 5, 10, 50, 100]
         relaxation_times  = [8.65*1e-5, 2.16*1e-3, 8.65*1e-3, 0.216, 0.865]
@@ -40,7 +43,7 @@ def main():
         sim.add_particle(position=particle_data[3][1], diameter_nm=particle_sizes_nm[particle_data[3][0]], density=PhysicsConstants.DENSITY_SAND__KG_M__3, relaxation_time=relaxation_times[particle_data[3][0]])
 
         sim.throttle_simulation(1000)
-        sim.limit_iterations(10000)
+        sim.limit_iterations(20000)
 
         sim.start()
         sim.plot()

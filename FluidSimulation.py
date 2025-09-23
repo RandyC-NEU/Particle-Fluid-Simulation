@@ -8,6 +8,7 @@ import numpy as np
 from typing import List, Dict, Tuple, Type
 from math import pi, tan, atan
 from time import time, sleep
+import sys
 
 '''
     Main simulation object that represents a particle submersed in a flowing fluid
@@ -122,9 +123,8 @@ class ParticleInFluidSimulation(Simulation):
         for p in self._particles:
             p.update(dt)
             if p.collided():
-                # self.plot()
-                # exit()
-                self._quit = True
+                print("Collision")
+                #Simulate 200 more timesteps to see where it goes
         self._fluid.update(dt)
 
         # for p in self._particles:
@@ -174,3 +174,10 @@ class ParticleInFluidSimulation(Simulation):
         self.plot_particle_trajectory()
 
         plt.show()
+
+    def get_sig_handler(self):
+        def handler(sig, frame):
+            print("This is an early exit, will plot trajectories at this point")
+            self.plot()
+            sys.exit(1)
+        return handler

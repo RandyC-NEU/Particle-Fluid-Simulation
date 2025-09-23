@@ -19,6 +19,9 @@ class Vec2:
     def ones():
         return Vec2(1.0, 1.0)
 
+    def dot(v1, v2) -> float:
+        return v1._x*v2._x + v1._y*v2._y
+
     def __eq__(self, other):
         return (self._x == other._x) and (self._y == other._y)
 
