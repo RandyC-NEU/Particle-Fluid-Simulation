@@ -83,6 +83,7 @@ class Particle(Simulation):
                 print("Boundary", i, ":: ")
                 print(collision)
                 self.reflect_off_boundary(i, collision[2], dt)
+                return
 
     def update(self, dt: float):
         self._collided         = False
