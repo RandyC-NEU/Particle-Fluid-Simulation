@@ -99,7 +99,7 @@ class Particle(Simulation):
         drag_dependent_force : Vec2 = drag_force*(self._fluid.velocity() - self._velocity)
         grav_dependent_force : Vec2 = ((self._density - self._fluid.density())/self._density)*PhysicsConstants.GRAVITY_M_S__2
 
-        dv_dt : Vec2 = drag_dependent_force #+ (grav_dependent_force if self._relaxation_time > 0.8 else Vec2(0, 0))
+        dv_dt : Vec2 = drag_dependent_force / self._mass #+ (grav_dependent_force if self._relaxation_time > 0.8 else Vec2(0, 0))
 
         delta_velocity += dv_dt*dt
 
